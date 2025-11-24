@@ -3,9 +3,17 @@ import pandas as pd
 import numpy as np
 import joblib
 
+# Load model once at startup (cached)
+@st.cache_resource
+def load_model():
+    return joblib.load("rf_model.sav")
+
 def predict(data):
-    clf = joblib.load("rf_model.sav")
-    return clf.predict(data)
+    clf = load_model()
+    prediction = clf.predict(data)
+    # Map integer predictions to class names
+    class_names = ["setosa", "versicolor", "virginica"]
+    return [class_names[int(pred)] for pred in prediction]
 
 # Function to map classes to images
 def class_to_image(class_name):
@@ -38,10 +46,11 @@ st.text('')
 if st.button("Predict type of Iris"):
     result = predict(
         np.array([[sepal_l, sepal_w, petal_l, petal_w]]))
-    st.text(result[0])
+    predicted_class = result[0]
+    st.text(f"Predicted Iris type: {predicted_class}")
 
     # Display the image/icon corresponding to the predicted class
-    image_path = class_to_image(result[0].split("-")[1])
+    image_path = class_to_image(predicted_class)
     st.image(image_path, use_column_width=True)
 
 
